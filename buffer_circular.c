@@ -57,7 +57,7 @@ void imprimir_buffer() {
 				}else{
 					aux_j++;
 					}
-				if(aux_j != i) printf(" ");//coloca um espaço entre cada valor printado com exceção do último
+				if(aux_j != i) printf(" ");//coloca um espaço entre cada valor printado com exceção do último 
 			}
 		}while(i != aux_j);		
 	}
