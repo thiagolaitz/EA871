@@ -45,14 +45,6 @@ void mudar_estado(){
 	}
 }
 
-void contar(){
-	if(num != 9) {
-		num++;
-	}else{
-		num = 0;
-	}
-}
-
 void debounce(){
 //realiza o debounce em software
 	aux = (*p_pinc & 0x01);
@@ -64,9 +56,9 @@ int main(void){
 	*p_ddrc = *p_ddrc & 0x00; //saida: A0
 	*p_ddrd = *p_ddrd | 0xFF; //*p_ddrd | 0xFE; //entradas : port D[7-1]
 	// o Programa começa no estado 2 e com o valor 0 no display:
+	*p_portc = *p_portc | 0x01;
 	*p_portd = *p_portd & 0x00;
 	*p_portd = *p_portd | 0x7E;
-	*p_portc = *p_portc | 0x01;
 	
     while (1) 
     {
@@ -74,11 +66,16 @@ int main(void){
 		
 		if(((*p_pinc & 0x01) == pressionado) & (aux == pressionado) & (estado == 2)){//transição 2 => 1
 			estado = 1;
+			mudar_estado();
+			if(num != 9) {
+				num++;
+				}else{
+				num = 0;
+				}
 		}
 		if(((*p_pinc & 0x01) == solto) & (aux == solto) & (estado == 1)){//transiçao 1 => 2
 			estado = 2;
-			contar();
-			mudar_estado();
 		}
 	}
+	return 0;
 }
