@@ -12,15 +12,15 @@
 #include <util/delay.h>
 #include <string.h>
 
-unsigned char * sreg			  = (unsigned char *) 0x5f;//aponta para o registrador sreg 	
-unsigned char * p_ucsr0a		  = (unsigned char *) 0xC0;
-unsigned char * p_ucsr0b		  = (unsigned char *) 0xC1;
-unsigned char * p_ucsr0c		  = (unsigned char *) 0xC2;
-unsigned char * p_ubrr0h		  = (unsigned char *) 0xC5;
-unsigned char * p_ubrr0l		  = (unsigned char *) 0XC4;
-volatile unsigned char * p_udr0   = (unsigned char *) 0xC6;
-unsigned char * ddrb			  = (unsigned char *) 0x24;//aponta para o registrador de direção B
-volatile unsigned char * portb    = (unsigned char *) 0x25;//aponta para o registrador PortB
+unsigned char * sreg = (unsigned char *) 0x5f;//aponta para o registrador sreg 	
+unsigned char * p_ucsr0a = (unsigned char *) 0xC0;
+unsigned char * p_ucsr0b = (unsigned char *) 0xC1;
+unsigned char * p_ucsr0c = (unsigned char *) 0xC2;
+unsigned char * p_ubrr0h = (unsigned char *) 0xC5;
+unsigned char * p_ubrr0l = (unsigned char *) 0XC4;
+volatile unsigned char * p_udr0 = (unsigned char *) 0xC6;
+unsigned char * ddrb = (unsigned char *) 0x24;//aponta para o registrador de direção B
+volatile unsigned char * portb = (unsigned char *) 0x25;//aponta para o registrador PortB
 
 volatile int contador = 0;
 char buffer[10];
