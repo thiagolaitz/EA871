@@ -12,25 +12,25 @@
 #include <util/delay.h>
 #include <string.h>
 
-unsigned char * sreg = (unsigned char *) 0x5f;//aponta para o registrador sreg 	
-unsigned char * p_ucsr0a = (unsigned char *) 0xC0;
-unsigned char * p_ucsr0b = (unsigned char *) 0xC1;
-unsigned char * p_ucsr0c = (unsigned char *) 0xC2;
-unsigned char * p_ubrr0h = (unsigned char *) 0xC5;
-unsigned char * p_ubrr0l = (unsigned char *) 0XC4;
-volatile unsigned char * p_udr0 = (unsigned char *) 0xC6;
-unsigned char * ddrb = (unsigned char *) 0x24;//aponta para o registrador de direção B
-volatile unsigned char * portb = (unsigned char *) 0x25;//aponta para o registrador PortB
+unsigned char * sreg			  = (unsigned char *) 0x5f;//aponta para o registrador sreg 	
+unsigned char * p_ucsr0a		  = (unsigned char *) 0xC0;
+unsigned char * p_ucsr0b		  = (unsigned char *) 0xC1;
+unsigned char * p_ucsr0c		  = (unsigned char *) 0xC2;
+unsigned char * p_ubrr0h		  = (unsigned char *) 0xC5;
+unsigned char * p_ubrr0l		  = (unsigned char *) 0XC4;
+volatile unsigned char * p_udr0   = (unsigned char *) 0xC6;
+unsigned char * ddrb			  = (unsigned char *) 0x24;//aponta para o registrador de direção B
+volatile unsigned char * portb    = (unsigned char *) 0x25;//aponta para o registrador PortB
 
 volatile int contador = 0;
 char buffer[10];
 int i = 0;//guarda a posição livre do buffer
-int j = 10;//Posiçao do elemento mais antigo nao processado -- inicializado com o valor 10
-int vazio = 1;//indica que o buffer esta vazio
-int cheio = 0;//indica que o buffer esta cheio
+int j = 0;//Posiçao do elemento mais antigo nao processado
+int espacos = 10; //numero de espaços para escrever 
 volatile int fim = 1;//indica o fim de uma transmissao de msg
-
 volatile char msg[30];
+
+volatile int flag = 0;//indica se esta ou não imprimindo um comando
 
 void setup(){
 	*p_ucsr0a = *p_ucsr0a & 0xFC;//modo multiprocessador e velocidade dupla desativados
@@ -44,147 +44,141 @@ void setup(){
 }
 
 char remover_buffer(){
-	/*Remove um item do buffer no caso de não estar vazio*/
-	cheio = 0;
+/*Remove um item do buffer no caso de não estar vazio*/
 	int aux = j;
-	if(j != 10 & vazio == 0){
-		if(j+1 == i | (j == 9 & i == 0)){//caso que o buffer se torna vazio
-			vazio = 1;
-			if(j != 9) j++;
-			if(j == 9) j = 0;
-			}else{ //caso que só é removido um item
-			if(j == 9) j = 0;
-			if(j != 9) j++;
+	if(espacos != 10){
+		if(j != 9){
+			j++;
+		}else{
+			j = 0;
 		}
-		return buffer[aux];
+		espacos++;
 	}
+	return buffer[aux];
 }
 
 void processar(){
 /*Responsável por processar os dados dentro do buffer circular*/
-	char c = remover_buffer();
-	if(c == 'r'){//r = acender vermelho
-		*portb = *portb & 0x00;
-		*portb = *portb | 0x01;
-		_delay_ms(200);
-		if(fim == 1){
-			strcpy(msg, "Comando: Acender LED - cor vermelha\n");
-			contador = 0;
-			*p_udr0 = msg[contador];
-			contador = 1;
-			fim = 0;
-		}
-		
-	}else if(c == 'g'){//g = acender verde
-		*portb = *portb & 0x00;
-		*portb = *portb | 0x02;
-		_delay_ms(200);
-		if(fim == 1){
-			strcpy(msg, "Comando: Acender LED - cor verde\n");
-			contador = 0;
-			*p_udr0 = msg[contador];
-			contador = 1;
-			fim = 0;
-		}
-	}else if(c == 'b'){//b = acender azul
-		*portb = *portb & 0x00;
-		*portb = *portb | 0x04;
-		_delay_ms(200);
-		if(fim == 1){
-			strcpy(msg, "Comando: Acender LED - cor azul\n");
-			contador = 0;
-			*p_udr0 = msg[contador];
-			contador = 1;
-			fim = 0;
-		}
-	}else if(c == 121){//y = acender amarelo
-		*portb = *portb & 0x00;
-		*portb = *portb | 0x03;
-		_delay_ms(200);
-		if(fim == 1){
-			strcpy(msg, "Comando: Acender LED - cor amarela\n");
-			contador = 0;
-			*p_udr0 = msg[contador];
-			contador = 1;
-			fim = 0;
-		}
-	}else if(c == 99){//c = acender ciano
-		*portb = *portb & 0x00;
-		*portb = *portb | 0x06;
-		_delay_ms(200);
-		if(fim == 1){
-			strcpy(msg, "Comando: Acender LED - cor ciano\n");
-			contador = 0;
-			*p_udr0 = msg[contador];
-			contador = 1;
-			fim = 0;
-		}
-	}else if(c == 109){//m = acender magenta
-		*portb = *portb & 0x00;
-		*portb = *portb | 0x05;
-		_delay_ms(200);
-		if(fim == 1){
-			strcpy(msg, "Comando: Acender LED - cor magenta\n");
-			contador = 0;
-			*p_udr0 = msg[contador];
-			contador = 1;
-			fim = 0;
-		}
-	}else if(c == 119){//w = acender branco
-		*portb = *portb & 0x00;
-		*portb = *portb | 0x07;
-		_delay_ms(200);
-		if(fim == 1){
-			strcpy(msg, "Comando: Acender LED - cor branco\n");
-			contador = 0;
-			*p_udr0 = msg[contador];
-			contador = 1;
-			fim = 0;
-		}
-	}else{//char invalido: apagado
-		*portb = *portb & 0x00;
-		if(fim == 1){
-			strcpy(msg, "Comando incorreto\n");
-			contador = 0;
-			*p_udr0 = msg[contador];
-			contador = 1;
-			fim = 0;
+	if((flag == 0) & (fim == 1)){//se não estiver enviando nenhum comando
+		char c = remover_buffer();
+		if(c == 'r'){//r = acender vermelho
+			*portb = *portb & 0x00;
+			*portb = *portb | 0x01;
+			if(fim == 1){
+				flag = 1;
+				strcpy(msg, "Comando: Acender LED - cor vermelha \n\0");
+				contador = 0;
+				//flag = 0;
+				*p_udr0 = msg[contador];
+				contador = 1;
+				fim = 0;
+			}
+			_delay_ms(200);
+		}else if(c == 'g'){//g = acender verde
+			*portb = *portb & 0x00;
+			*portb = *portb | 0x02;
+			if(fim == 1){
+				strcpy(msg, "Comando: Acender LED - cor verde \n\0");
+				contador = 0;
+				flag = 1;
+				*p_udr0 = msg[contador];
+				contador = 1;
+				fim = 0;
+			}
+			_delay_ms(200);
+		}else if(c == 'b'){//b = acender azul
+			*portb = *portb & 0x00;
+			*portb = *portb | 0x04;
+			_delay_ms(200);
+			/*if(fim == 1){
+				strcpy(msg, "Comando: Acender LED - cor azul\n");
+				contador = 0;
+				*p_udr0 = msg[contador];
+				contador = 1;
+				fim = 0;
+			}*/
+		}else if(c == 121){//y = acender amarelo
+			*portb = *portb & 0x00;
+			*portb = *portb | 0x03;
+			_delay_ms(200);
+			/*if(fim == 1){
+				strcpy(msg, "Comando: Acender LED - cor amarela\n");
+				contador = 0;
+				*p_udr0 = msg[contador];
+				contador = 1;
+				fim = 0;
+			}*/
+		}else if(c == 99){//c = acender ciano
+			*portb = *portb & 0x00;
+			*portb = *portb | 0x06;
+			_delay_ms(200);
+			/*if(fim == 1){
+				strcpy(msg, "Comando: Acender LED - cor ciano\n");
+				contador = 0;
+				*p_udr0 = msg[contador];
+				contador = 1;
+				fim = 0;
+			}*/
+		}else if(c == 109){//m = acender magenta
+			*portb = *portb & 0x00;
+			*portb = *portb | 0x05;
+			_delay_ms(200);
+			/*if(fim == 1){
+				strcpy(msg, "Comando: Acender LED - cor magenta\n");
+				contador = 0;
+				*p_udr0 = msg[contador];
+				contador = 1;
+				fim = 0;
+			}*/
+		}else if(c == 119){//w = acender branco
+			*portb = *portb & 0x00;
+			*portb = *portb | 0x07;
+			_delay_ms(200);
+			/*if(fim == 1){
+				strcpy(msg, "Comando: Acender LED - cor branco\n");
+				contador = 0;
+				*p_udr0 = msg[contador];
+				contador = 1;
+				fim = 0;
+			}*/
+		}else{//char invalido: apagado
+			*portb = *portb & 0x00;
+			/*if(fim == 1){
+				strcpy(msg, "Comando incorreto\n");
+				contador = 0;
+				*p_udr0 = msg[contador];
+				contador = 1;
+				fim = 0;
+			}*/
 		}
 	}
 }
 
 void adicionar_buffer(char c) {
 /* Adiciona um item ao buffer se ele não estiver cheio */
-	
-	if(cheio == 0){
-		if(i == 9){
-			vazio = 0;
-			buffer[i] = c;//devemos salvar o char c antes de incrementar i
-			i = 0;
-		}else{
-			vazio = 0;
-			if(j == 10) j = i;//salva o primeiro valor de j
-			buffer[i] = c;
+	if (espacos != 0){
+		buffer[i] = c;
+		if(i != 9){
 			i++;
+		}else{
+			i = 0;
 		}
+		espacos--;
 	}
-	if(i == j) cheio = 1;//caso o índice i alcance o índice j
-	
 }
 
 int main(void){
 	setup();
 	do{
-		if(vazio == 1){
+		if(espacos == 10){
 			*portb = *portb & 0x00;
-			if(fim == 1){
+			if(fim == 1){//se a transmissão já terminou
 				strcpy(msg, "Vazio!\n");
 				contador = 0;
 				*p_udr0 = msg[contador];
 				contador = 1;
-				fim = 0;
+				fim = 0;//Comecei uma transmissão
 			}
-			
 		}else{
 			processar();
 		}
@@ -198,16 +192,22 @@ ISR(USART_RX_vect){
 /*Rotina de interrupção: recepção completa*/
 	char m;
 	m = *p_udr0;
+	//*portb = *portb | 0x02;
 	adicionar_buffer(m);
+	//processar(m);
 }
 
 ISR(USART_TX_vect){
 /*Rotina responsável por transmitir os caracteres restantes*/ 
 //o primeiro char é passado fora da interrupção contador deve ser 1
+
 	if(msg[contador] != '\0'){
 		*p_udr0 = msg[contador];
 		contador++;
 	}else{
+		if(flag == 1){//se estava printando um comando => acabou
+			flag = 0;
+		}//indica que a transmissão acabou
 		fim = 1;
 	}
 }
